@@ -10,6 +10,7 @@ colors_rgb = {
     "white": (255, 255, 255)
 }
 bottle_color = (238, 201, 0)
+main_head_color = (233, 219, 115)
 
 bottle_size = 80, 450
 liquid_size = 80, 56

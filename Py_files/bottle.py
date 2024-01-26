@@ -2,7 +2,8 @@ import pygame
 from Py_files.settings import *
 
 
-# Класс для хранения бутылок и обработки всего, что с ними связано
+# Класс, реализующий хранение бутылок в виде объектов класса Bottle
+# в списке bottles и обрабатывающий всё, что с ними связано
 class Bottle:
     bottles = []
 
@@ -17,13 +18,15 @@ class Bottle:
 
     def move_top(self, purpose):
         """ Переливание верхней жидкости одной бутылки в другую """
-        if len(self.liquids) > 0:
+        if len(self.liquids) > 0:  # Если жидкости есть в текущей бутылке, отбираем верхнюю жидкость
             first_liquid_current_bottle = self.liquids[0]
         else:
-            first_liquid_current_bottle = False
-        if len(purpose.liquids) > 0:
+            first_liquid_current_bottle = False  # Помечаем, что бутылка пуста
+        if len(purpose.liquids) > 0:  # Если жидкости есть в бутылке, в которую переливают, отбираем верхнюю жидкость
             first_liquid_purpose = purpose.liquids[0]
-        else:
+            first_liquid_position_at_purpose = purpose.liquid_positions[0]
+        else:  # Иначе помечаем, что бутылка пуста и записываем в позицию жидкости низ бутылки
+            first_liquid_position_at_purpose = purpose.position[0], purpose.position[1] + bottle_size[1]
             first_liquid_purpose = False
         if (first_liquid_current_bottle == first_liquid_purpose or not first_liquid_purpose) and \
                 first_liquid_current_bottle and self != purpose:
@@ -36,10 +39,6 @@ class Bottle:
                 last_liquid = self.liquids[ind]
                 number_of_liquids += 1
             purpose.liquids = [first_liquid_current_bottle] * number_of_liquids + purpose.liquids  # Переливание жидкостей
-            if len(purpose.liquid_positions) > 0:
-                first_liquid_position_at_purpose = purpose.liquid_positions[0]
-            else:
-                first_liquid_position_at_purpose = purpose.position[0], purpose.position[1] + bottle_size[1]
             # Добавляем позиции недавно перелитых жидкостей
             for i in range(1, number_of_liquids + 1):
                 purpose.liquid_positions.insert(
@@ -54,8 +53,8 @@ class Bottle:
 
     def draw(self):
         """ Рисование бутылок с жидкостями на основе новых позиций жидкостей liquid_positions """
-        pygame.draw.rect(self.screen, bottle_color, self.bottle, 5)
-        if self.picked:  # Если на бутылку нажали, то выделяем её белым цветом
+        pygame.draw.rect(self.screen, bottle_color, self.bottle, 5, 9, 0, 0, 9)  # Рисуем бутылку (края золотым цветом)
+        if self.picked:  # Если на бутылку нажали, то выделяем контур бутылки белым цветом
             pygame.draw.rect(self.screen, (255, 255, 255), self.bottle, 5)
         for ind, liquid in enumerate(self.liquids):
             liquid_position = self.liquid_positions[ind]
@@ -66,7 +65,7 @@ class Bottle:
                 (liquid_position[0] + bottle_thickness,
                  liquid_position[1] - bottle_thickness,
                  liquid_size[0] - 2 * bottle_thickness,
-                 liquid_size[1])
+                 liquid_size[1]),
             )
             # Рисуем черный контур для жидкостей
             pygame.draw.rect(
@@ -75,6 +74,7 @@ class Bottle:
                 (liquid_position[0] + bottle_thickness,
                  liquid_position[1] - bottle_thickness,
                  liquid_size[0] - 2 * bottle_thickness,
-                 liquid_size[1]), 1
+                 liquid_size[1]),
+                1
             )
 
