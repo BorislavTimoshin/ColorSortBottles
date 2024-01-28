@@ -7,11 +7,12 @@ from Py_files.settings import *
 class Bottle:
     bottles = []
 
-    def __init__(self, screen, position, liquids, liquid_positions):
+    def __init__(self, screen, position, liquids, liquid_positions, level):
         self.screen = screen
         self.position = position
         self.liquids = liquids
         self.liquid_positions = liquid_positions
+        self.level = level
         self.bottle = pygame.Rect(*position, *bottle_size)
         self.picked = False
         self.bottles.append(self)
@@ -24,30 +25,35 @@ class Bottle:
             first_liquid_current_bottle = False  # Помечаем, что бутылка пуста
         if len(purpose.liquids) > 0:  # Если жидкости есть в бутылке, в которую переливают, отбираем верхнюю жидкость
             first_liquid_purpose = purpose.liquids[0]
-            first_liquid_position_at_purpose = purpose.liquid_positions[0]
+            first_liquid_position_purpose = purpose.liquid_positions[0]
         else:  # Иначе помечаем, что бутылка пуста и записываем в позицию жидкости низ бутылки
-            first_liquid_position_at_purpose = purpose.position[0], purpose.position[1] + bottle_size[1]
+            first_liquid_position_purpose = purpose.position[0], purpose.position[1] + bottle_size[1]
             first_liquid_purpose = False
-        if (first_liquid_current_bottle == first_liquid_purpose or not first_liquid_purpose) and \
-                first_liquid_current_bottle and self != purpose:
-            # Делаем подсчет подряд идущих жидкостей одного цвета в текущей бутылке
-            last_liquid = first_liquid_current_bottle
-            number_of_liquids = 0
-            for ind in range(len(self.liquids)):
-                if self.liquids[ind] != last_liquid:
-                    break
-                last_liquid = self.liquids[ind]
-                number_of_liquids += 1
-            purpose.liquids = [first_liquid_current_bottle] * number_of_liquids + purpose.liquids  # Переливание жидкостей
-            # Добавляем позиции недавно перелитых жидкостей
-            for i in range(1, number_of_liquids + 1):
-                purpose.liquid_positions.insert(
-                    0,
-                    (first_liquid_position_at_purpose[0], first_liquid_position_at_purpose[1] - i * 56)
-                )
-            # Удаляем первые counter жидкостей одного цвета из текущей бутылки
-            del self.liquids[:number_of_liquids]
-            del self.liquid_positions[:number_of_liquids]
+        if self != purpose:  # Если переливаем не в одну и ту же бутылку
+            if first_liquid_current_bottle:  # Если текущая бутылка не пуста, то есть имеется то, что переливать
+                # Если верх текущей бутылки равен верху второй бутылки
+                if first_liquid_current_bottle == first_liquid_purpose or not first_liquid_purpose:
+                    # Делаем подсчет подряд идущих жидкостей одного цвета в текущей бутылке
+                    last_liquid = first_liquid_current_bottle
+                    number_of_liquids = 0
+                    for ind in range(len(self.liquids)):
+                        if self.liquids[ind] != last_liquid:
+                            break
+                        last_liquid = self.liquids[ind]
+                        number_of_liquids += 1
+                    # Переливание жидкостей
+                    purpose.liquids = [first_liquid_current_bottle] * number_of_liquids + purpose.liquids
+                    # Добавляем позиции недавно перелитых жидкостей
+                    for i in range(1, number_of_liquids + 1):
+                        purpose.liquid_positions.insert(
+                            0,
+                            (first_liquid_position_purpose[0], first_liquid_position_purpose[1] - i * 56)
+                        )
+                    # Удаляем первые counter жидкостей одного цвета из текущей бутылки
+                    del self.liquids[:number_of_liquids]
+                    del self.liquid_positions[:number_of_liquids]
+                else:
+                    progress[f"level_{self.level}"]["Поражений"] += 1
         # Помечаем, что обе бутылки теперь не выбраны
         self.picked = False
         purpose.picked = False
@@ -79,4 +85,3 @@ class Bottle:
                  liquid_size[1]),
                 1
             )
-

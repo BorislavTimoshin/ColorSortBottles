@@ -9,6 +9,7 @@ colors_rgb = {
     "turquoise": (0, 255, 255),
     "white": (255, 255, 255)
 }
+
 bottle_color = (238, 201, 0)
 header_color = (233, 219, 115)
 rule_text_color = (153, 255, 153)
@@ -20,3 +21,31 @@ liquid_size = 80, 56
 bottle_thickness = 5
 
 size = width_screen, height_screen = 1000, 750
+
+progress = {
+    "level_1": {
+        "record_time": 0,
+        "Побед": 0,
+        "Поражений": 0
+    },
+    "level_2": {
+        "record_time": 0,
+        "Побед": 0,
+        "Поражений": 0
+    },
+    "level_3": {
+        "record_time": 0,
+        "Побед": 0,
+        "Поражений": 0
+    },
+    "level_4": {
+        "record_time": 0,
+        "Побед": 0,
+        "Поражений": 0
+    },
+    "level_5": {
+        "record_time": 0,
+        "Побед": 0,
+        "Поражений": 0
+    },
+}

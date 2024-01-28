@@ -59,6 +59,64 @@ def load_image(name, color_key=None):
     return image
 
 
+def print_text(text, position, font_color, font_size):
+    font_type = pygame.font.Font(None, font_size)
+    text = font_type.render(text, True, font_color)
+    screen.blit(text, position)
+
+
+def draw_game(level):
+    """ Функция, рисующая колбочки, кнопку назад: игровое поле """
+    screen.blit(background, (0, 0))
+    back = Button(100, 45, btn_color)
+    back.draw_button(800, 660, "Назад", key=show_levels)
+    again = Button(110, 45, btn_color)
+    again.draw_button(670, 660, "Заново", key=start_level, level=level)
+    # Рисуем бутылки
+    for bottle in Bottle.bottles:
+        bottle.draw()
+
+
+def create_particles(position, level):
+    """ Функция, создающая анимацию звездопада """
+    # количество создаваемых частиц
+    particle_count = 150
+    # возможные скорости
+    numbers = range(-5, 6)
+    for _ in range(particle_count):
+        Particle(position, random.choice(numbers), random.choice(numbers))
+    for i in range(80):
+        all_sprites_animation.update()
+        draw_game(level)
+        all_sprites_animation.draw(screen)
+        pygame.display.flip()
+        clock.tick(50)
+
+
+def lost(level) -> bool:
+    """ Проверка на то, проиграл ли игрок (не может никуда расставить жидкости) """
+    first_colors_bottles = [i.liquids[0] if len(i.liquids) > 0 else None for i in Bottle.bottles]
+    if not win():  # Если мы не победили
+        if None not in first_colors_bottles:  # Если нет пустых бутылок, то есть мы не можем перелить в пустую
+            if len(first_colors_bottles) == len(set(first_colors_bottles)):  # Если все верхние цвета бутылок разные
+                progress[f"level_{level}"]["Поражений"] += 1
+                return True
+    return False
+
+
+def win() -> bool:
+    """ Проверка на то, отсортированы ли все цвета в бутылках """
+    # Проверка: есть ли бутылки, у которых цвет верхней жидкости совпадает. Если да, то нужно перелить
+    first_colors_bottles = [i.liquids[0] if len(i.liquids) > 0 else None for i in Bottle.bottles]
+    if len(first_colors_bottles) != len(set(first_colors_bottles)):
+        return False
+    # Проверка: есть ли бутылка-мультифрукт. Если да, то мы не победили
+    for i in Bottle.bottles:
+        if len(set(i.liquids)) > 1:
+            return False
+    return True
+
+
 def create_bottles(level):
     """ Начало уровня:
      1) создание атрибута в виде списка, в котором хранится level + 3 бутылок и информауия о них (жидкости, их позиции)
@@ -82,43 +140,9 @@ def create_bottles(level):
             screen,
             bottle_position,
             liquids=liquids[i*4:i*4+4],
-            liquid_positions=liquid_positions
+            liquid_positions=liquid_positions,
+            level=level
         )
-
-
-def lost() -> bool:
-    """ Проверка на то, проиграл ли игрок (не может никуда расставить жидкости) """
-    first_colors_bottles = [i.liquids[0] if len(i.liquids) > 0 else None for i in Bottle.bottles]
-    if not win():  # Если мы не победили
-        if None not in first_colors_bottles:  # Если нет пустых бутылок, то есть мы не можем перелить в пустую
-            if len(first_colors_bottles) == len(set(first_colors_bottles)):  # Если все верхние цвета бутылок разные
-                return True
-    return False
-
-
-def win() -> bool:
-    """ Проверка на то, отсортированы ли все цвета в бутылках """
-    # Проверка: есть ли бутылки, у которых цвет верхней жидкости совпадает. Если да, то нужно перелить
-    first_colors_bottles = [i.liquids[0] if len(i.liquids) > 0 else None for i in Bottle.bottles]
-    if len(first_colors_bottles) != len(set(first_colors_bottles)):
-        return False
-    # Проверка: есть ли бутылка-мультифрукт. Если да, то мы не победили
-    for i in Bottle.bottles:
-        if len(set(i.liquids)) > 1:
-            return False
-    return True
-
-
-def draw_game(level):
-    """ Функция, рисующая колбочки, кнопку назад: игровое поле """
-    screen.blit(background, (0, 0))
-    back = Button(100, 45, btn_color)
-    back.draw_button(800, 660, "Назад", key=show_levels)
-    again = Button(110, 45, btn_color)
-    again.draw_button(670, 660, "Заново", key=start_level, level=level)
-    # Рисуем бутылки
-    for bottle in Bottle.bottles:
-        bottle.draw()
 
 
 def start_level(level):
@@ -138,6 +162,7 @@ def start_level(level):
                             first_pick.move_top(second_pick)
                             # Если жидкости перелились в бутылке -> мы проигрываем и начинаем заново
                             if len(second_pick.liquids) > 8:
+                                progress[f"level_{level}"]["Поражений"] += 1
                                 first_pick, second_pick = None, None
                                 start_level(level)
                             first_pick, second_pick = None, None
@@ -147,35 +172,14 @@ def start_level(level):
         draw_game(level)
         # Проверка на то, отмортированы жидкости или нет
         if win():
+            progress["Побед"] += 1
             pygame.display.flip()
             create_particles(pygame.mouse.get_pos(), level)
             start_level(level)
-        elif lost():
+        elif lost(level):
             pygame.display.flip()
             start_level(level)
         pygame.display.flip()
-
-
-def print_text(text, position, font_color, font_size):
-    font_type = pygame.font.Font(None, font_size)
-    text = font_type.render(text, True, font_color)
-    screen.blit(text, position)
-
-
-def create_particles(position, level):
-    """ Функция, создающая анимацию звездопада """
-    # количество создаваемых частиц
-    particle_count = 150
-    # возможные скорости
-    numbers = range(-5, 6)
-    for _ in range(particle_count):
-        Particle(position, random.choice(numbers), random.choice(numbers))
-    for i in range(80):
-        all_sprites_animation.update()
-        draw_game(level)
-        all_sprites_animation.draw(screen)
-        pygame.display.flip()
-        clock.tick(50)
 
 
 def show_levels():
