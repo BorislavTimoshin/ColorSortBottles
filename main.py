@@ -2,8 +2,9 @@ import pygame
 import random
 import sys
 import os
-from Py_Files.bottle import Bottle
-from Py_Files.animation import Particle, all_sprites_animation
+import re
+from bottle import Bottle
+from animation import Particle, all_sprites_animation
 from settings import *
 
 pygame.init()
@@ -33,7 +34,7 @@ class Button:
             pygame.draw.rect(screen, self.color, (x, y, self.width, self.height))
             if click[0]:
                 pygame.time.delay(300)
-                if kwargs is not None:
+                if kwargs:
                     key(**kwargs)
                 else:
                     key()
@@ -122,7 +123,7 @@ def draw_game(level):
 
 
 def start_level(level):
-    """ Начало игры """
+    """ Начало выполнения уровня """
     global first_pick, second_pick
     first_pick, second_pick = None, None
     create_bottles(level)
@@ -165,7 +166,7 @@ def print_text(text, position, font_color, font_size):
 def create_particles(position, level):
     """ Функция, создающая анимацию звездопада """
     # количество создаваемых частиц
-    particle_count = 50
+    particle_count = 150
     # возможные скорости
     numbers = range(-5, 6)
     for _ in range(particle_count):
@@ -206,10 +207,60 @@ def show_levels():
         clock.tick(15)
 
 
+def get_rule() -> str:
+    with open("Other_files/rules.txt", "r", encoding="utf-8") as file:
+        rule = file.read()
+    return rule
+
+
+def print_rule_text(rule: str):
+    rule_font = pygame.font.SysFont(None, 40)
+    # Разбиваем текст на строки с учетом переносов
+    lines = []
+    sentences = [sentence.split() for sentence in re.split("\n", rule)]
+    print(sentences)
+    for sentence in sentences:
+        current_line = ''
+        for word in sentence:
+            test_line = current_line + word + ' '
+            if rule_font.size(test_line)[0] < width_screen - 130:
+                current_line = test_line
+            else:
+                lines.append(current_line)
+                current_line = word + ' '
+        lines.append(current_line)
+    # Отображаем текст на экране с учетом переносов
+    y = 280
+    for line in lines:
+        rule_surface = rule_font.render(line, True, rule_color)
+        screen.blit(rule_surface, (100, y))
+        y += rule_font.size(line)[1]
+    pygame.display.update()
+
+
+def print_rule():
+    """ Функция, печатающая правила игры """
+    screen.blit(background, (0, 0))
+    back = Button(100, 45, (217, 217, 196))
+    print_text("ПРАВИЛА ИГРЫ", (240, 150), main_head_color, 90)
+    rule = get_rule()
+    print_rule_text(rule)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    sys.exit()
+        back.draw_button(430, 620, "Назад", key=start_screen)
+        pygame.display.flip()
+        clock.tick(15)
+
+
 def show_menu():
     """ Функция для вывода кнопок главного меню """
     button_start = Button(205, 45, (217, 217, 196))
-    button_information = Button(150, 45, (217, 217, 196))
+    button_rule = Button(150, 45, (217, 217, 196))
     button_quit = Button(120, 45, (217, 217, 196))
     while True:
         for event in pygame.event.get():
@@ -219,8 +270,8 @@ def show_menu():
                 if event.key == pygame.K_ESCAPE:
                     sys.exit()
         button_start.draw_button(385, 410, "НАЧАТЬ ИГРУ", key=show_levels)
-        button_information.draw_button(412, 480, "ПРАВИЛА")
-        button_quit.draw_button(425, 550, "ВЫХОД", key=sys.exit)
+        button_rule.draw_button(412, 480, "ПРАВИЛА", key=print_rule)
+        button_quit.draw_button(427, 550, "ВЫХОД", key=sys.exit)
         pygame.display.flip()
         clock.tick(15)
 

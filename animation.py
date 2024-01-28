@@ -22,6 +22,7 @@ def load_image(name):
     return image
 
 
+# Класс для генерации анимации в виде зведопада, по нажатии на экран
 class Particle(pygame.sprite.Sprite):
     # сгенерируем частицы разного размера
     fire = [load_image("star.png")]

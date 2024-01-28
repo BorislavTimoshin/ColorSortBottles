@@ -11,10 +11,11 @@ colors_rgb = {
 }
 bottle_color = (238, 201, 0)
 main_head_color = (233, 219, 115)
+rule_color = (153, 255, 153)
 
 bottle_size = 80, 450
 liquid_size = 80, 56
 
-bottle_thickness = 5
+bottle_thickness = 8
 
 size = width_screen, height_screen = 1000, 750
