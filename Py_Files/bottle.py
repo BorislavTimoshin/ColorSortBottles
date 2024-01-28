@@ -1,5 +1,5 @@
 import pygame
-from Py_files.settings import *
+from settings import *
 
 
 # Класс, реализующий хранение бутылок в виде объектов класса Bottle
@@ -48,14 +48,15 @@ class Bottle:
             # Удаляем первые counter жидкостей одного цвета из текущей бутылки
             del self.liquids[:number_of_liquids]
             del self.liquid_positions[:number_of_liquids]
+        # Помечаем, что обе бутылки теперь не выбраны
         self.picked = False
         purpose.picked = False
 
     def draw(self):
         """ Рисование бутылок с жидкостями на основе новых позиций жидкостей liquid_positions """
-        pygame.draw.rect(self.screen, bottle_color, self.bottle, 5, 9, 0, 0, 9)  # Рисуем бутылку (края золотым цветом)
+        pygame.draw.rect(self.screen, bottle_color, self.bottle, 5, 9, 0, 0, 9)  # Рисуем закругленную бутылку (края золотым цветом)
         if self.picked:  # Если на бутылку нажали, то выделяем контур бутылки белым цветом
-            pygame.draw.rect(self.screen, (255, 255, 255), self.bottle, 5)
+            pygame.draw.rect(self.screen, (255, 255, 255), self.bottle, 5, 9, 0, 0, 9)
         for ind, liquid in enumerate(self.liquids):
             liquid_position = self.liquid_positions[ind]
             # Рисуем жидкость

@@ -16,3 +16,5 @@ bottle_size = 80, 450
 liquid_size = 80, 56
 
 bottle_thickness = 5
+
+size = width_screen, height_screen = 1000, 750
