@@ -2,7 +2,7 @@ import pygame
 import os
 import sys
 import random
-from settings import *
+from Py_files.settings import *
 
 background = pygame.image.load("Images/background.jpg")
 all_sprites_animation = pygame.sprite.Group()

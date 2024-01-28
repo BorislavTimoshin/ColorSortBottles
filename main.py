@@ -2,10 +2,9 @@ import pygame
 import random
 import sys
 import os
-import re
-from bottle import Bottle
-from animation import Particle, all_sprites_animation
-from settings import *
+from Py_files.bottle import Bottle
+from Py_files.animation import Particle, all_sprites_animation
+from Py_files.settings import *
 
 pygame.init()
 screen = pygame.display.set_mode(size)
@@ -113,9 +112,9 @@ def win() -> bool:
 def draw_game(level):
     """ Функция, рисующая колбочки, кнопку назад: игровое поле """
     screen.blit(background, (0, 0))
-    back = Button(100, 45, (217, 217, 196))
+    back = Button(100, 45, btn_color)
     back.draw_button(800, 660, "Назад", key=show_levels)
-    again = Button(110, 45, (217, 217, 196))
+    again = Button(110, 45, btn_color)
     again.draw_button(670, 660, "Заново", key=start_level, level=level)
     # Рисуем бутылки
     for bottle in Bottle.bottles:
@@ -182,14 +181,14 @@ def create_particles(position, level):
 def show_levels():
     """ Функция для вывода меню уровней """
     screen.blit(background, (0, 0))
-    print_text("ВЫБЕРИТЕ УРОВЕНЬ ИГРЫ!", (100, 150), main_head_color, 80)
+    print_text("ВЫБЕРИТЕ УРОВЕНЬ ИГРЫ!", (100, 150), header_color, 80)
     all_sprites_bottle.draw(screen)
-    level_1 = Button(175, 45, (217, 217, 196))
-    level_2 = Button(175, 45, (217, 217, 196))
-    level_3 = Button(175, 45, (217, 217, 196))
-    level_4 = Button(175, 45, (217, 217, 196))
-    level_5 = Button(175, 45, (217, 217, 196))
-    back = Button(100, 45, (217, 217, 196))
+    level_1 = Button(175, 45, btn_color)
+    level_2 = Button(175, 45, btn_color)
+    level_3 = Button(175, 45, btn_color)
+    level_4 = Button(175, 45, btn_color)
+    level_5 = Button(175, 45, btn_color)
+    back = Button(100, 45, btn_color)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -207,18 +206,19 @@ def show_levels():
         clock.tick(15)
 
 
-def get_rule() -> str:
+def get_rule_text() -> str:
+    """ Функция, возвращаяющая текст правил игры """
     with open("Other_files/rules.txt", "r", encoding="utf-8") as file:
         rule = file.read()
     return rule
 
 
 def print_rule_text(rule: str):
+    """ Функция, выводящая текст правил игры """
     rule_font = pygame.font.SysFont(None, 40)
     # Разбиваем текст на строки с учетом переносов
     lines = []
-    sentences = [sentence.split() for sentence in re.split("\n", rule)]
-    print(sentences)
+    sentences = [sentence.split() for sentence in rule.split("\n")]
     for sentence in sentences:
         current_line = ''
         for word in sentence:
@@ -232,18 +232,18 @@ def print_rule_text(rule: str):
     # Отображаем текст на экране с учетом переносов
     y = 280
     for line in lines:
-        rule_surface = rule_font.render(line, True, rule_color)
+        rule_surface = rule_font.render(line, True, rule_text_color)
         screen.blit(rule_surface, (100, y))
         y += rule_font.size(line)[1]
     pygame.display.update()
 
 
-def print_rule():
+def show_rule():
     """ Функция, печатающая правила игры """
     screen.blit(background, (0, 0))
-    back = Button(100, 45, (217, 217, 196))
-    print_text("ПРАВИЛА ИГРЫ", (240, 150), main_head_color, 90)
-    rule = get_rule()
+    back = Button(100, 45, btn_color)
+    print_text("ПРАВИЛА ИГРЫ", (240, 150), header_color, 90)
+    rule = get_rule_text()
     print_rule_text(rule)
     while True:
         for event in pygame.event.get():
@@ -259,9 +259,9 @@ def print_rule():
 
 def show_menu():
     """ Функция для вывода кнопок главного меню """
-    button_start = Button(205, 45, (217, 217, 196))
-    button_rule = Button(150, 45, (217, 217, 196))
-    button_quit = Button(120, 45, (217, 217, 196))
+    button_start = Button(205, 45, btn_color)
+    button_rule = Button(150, 45, btn_color)
+    button_quit = Button(120, 45, btn_color)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -270,7 +270,7 @@ def show_menu():
                 if event.key == pygame.K_ESCAPE:
                     sys.exit()
         button_start.draw_button(385, 410, "НАЧАТЬ ИГРУ", key=show_levels)
-        button_rule.draw_button(412, 480, "ПРАВИЛА", key=print_rule)
+        button_rule.draw_button(412, 480, "ПРАВИЛА", key=show_rule)
         button_quit.draw_button(427, 550, "ВЫХОД", key=sys.exit)
         pygame.display.flip()
         clock.tick(15)
@@ -278,7 +278,7 @@ def show_menu():
 
 def start_screen():
     screen.blit(background, (0, 0))
-    print_text("Get Color", (290, 150), main_head_color, 130)
+    print_text("Get Color", (290, 150), header_color, 130)
     all_sprites_bottle.draw(screen)
     show_menu()
     while True:
