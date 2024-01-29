@@ -54,6 +54,7 @@ class Bottle:
                     del self.liquid_positions[:number_of_liquids]
                 else:
                     progress[f"level_{self.level}"]["Поражений"] += 1
+                    return "lost"
         # Помечаем, что обе бутылки теперь не выбраны
         self.picked = False
         purpose.picked = False

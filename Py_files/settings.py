@@ -24,27 +24,37 @@ size = width_screen, height_screen = 1000, 750
 
 progress = {
     "level_1": {
-        "record_time": 0,
+        "start_time": None,
+        "record_time": None,
+        "current_time": None,
         "Побед": 0,
         "Поражений": 0
     },
     "level_2": {
-        "record_time": 0,
+        "start_time": None,
+        "record_time": None,
+        "current_time": None,
         "Побед": 0,
         "Поражений": 0
     },
     "level_3": {
-        "record_time": 0,
+        "start_time": None,
+        "record_time": None,
+        "current_time": None,
         "Побед": 0,
         "Поражений": 0
     },
     "level_4": {
-        "record_time": 0,
+        "start_time": None,
+        "record_time": None,
+        "current_time": None,
         "Побед": 0,
         "Поражений": 0
     },
     "level_5": {
-        "record_time": 0,
+        "start_time": None,
+        "record_time": None,
+        "current_time": None,
         "Побед": 0,
         "Поражений": 0
     },

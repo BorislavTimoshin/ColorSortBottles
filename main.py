@@ -2,6 +2,7 @@ import pygame
 import random
 import sys
 import os
+from datetime import datetime
 from Py_files.bottle import Bottle
 from Py_files.animation import Particle, all_sprites_animation
 from Py_files.settings import *
@@ -145,11 +146,33 @@ def create_bottles(level):
         )
 
 
+def print_result(level):
+    number_of_wins = progress[f"level_{level}"]["Побед"]
+    number_of_defeats = progress[f"level_{level}"]["Поражений"]
+    record_time = progress[f"level_{level}"]["record_time"]
+    if record_time is not None:
+        rec_minute = record_time.minute
+        rec_second = record_time.second
+        if 0 <= rec_second <= 9:
+            if 0 <= rec_minute <= 9:
+                print_text(f"Рекордное время: 0{rec_minute}:0{rec_second}", (100, 700), header_color, 50)
+            else:
+                print_text(f"Рекордное время: {rec_minute}:0{rec_second}", (100, 700), header_color, 50)
+        else:
+            if 0 <= rec_minute <= 9:
+                print_text(f"Рекордное время: 0{rec_minute}:{rec_second}", (100, 700), header_color, 50)
+            else:
+                print_text(f"Рекордное время: {rec_minute}:{rec_second}", (100, 700), header_color, 50)
+    print_text(f"Число побед: {number_of_wins}", (100, 600), header_color, 50)
+    print_text(f"Число поражений: {number_of_defeats}", (100, 650), header_color, 50)
+
+
 def start_level(level):
     """ Начало выполнения уровня """
     global first_pick, second_pick
     first_pick, second_pick = None, None
     create_bottles(level)
+    progress[f"level_{level}"]["start_time"] = datetime.now()
     while True:
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
@@ -159,25 +182,43 @@ def start_level(level):
                     if jar.bottle.collidepoint(e.pos):
                         if first_pick:  # Если бутылка уже была выбрана, и это уже второе нажатие
                             second_pick = jar
-                            first_pick.move_top(second_pick)
+                            result = first_pick.move_top(second_pick)
                             # Если жидкости перелились в бутылке -> мы проигрываем и начинаем заново
-                            if len(second_pick.liquids) > 8:
-                                progress[f"level_{level}"]["Поражений"] += 1
+                            if result == "lost":  # Если мы перелили не в ту жидкость, то проиграли и начинаем заново
                                 first_pick, second_pick = None, None
+                                start_level(level)
+                            elif len(second_pick.liquids) > 8:
+                                first_pick, second_pick = None, None
+                                progress[f"level_{level}"]["Поражений"] += 1
                                 start_level(level)
                             first_pick, second_pick = None, None
                         else:  # Иначе сохраняем выбранную в первый раз бутылку
                             jar.picked = True
                             first_pick = jar
         draw_game(level)
-        # Проверка на то, отмортированы жидкости или нет
+        print_result(level)
+        # Проверка на то, отсортированы жидкости или нет
         if win():
-            progress["Побед"] += 1
+            progress[f"level_{level}"]["Побед"] += 1
+            # Обработка времени
+            current_time = datetime.now()
+            start_time = progress[f"level_{level}"]["start_time"]
+            all_seconds = current_time.minute * 60 - start_time.minute * 60 + current_time.second - start_time.second
+            game_minutes = all_seconds // 60
+            game_seconds = all_seconds % 60
+            game_time = datetime(year=2024, month=1, day=1, minute=game_minutes, second=game_seconds)
+            record_time = progress[f"level_{level}"]["record_time"]
+            if record_time is None:
+                progress[f"level_{level}"]["record_time"] = game_time
+            else:
+                if game_time < record_time:
+                    progress[f"level_{level}"]["record_time"] = game_time
             pygame.display.flip()
             create_particles(pygame.mouse.get_pos(), level)
             start_level(level)
         elif lost(level):
             pygame.display.flip()
+            progress[f"level_{level}"]["Поражений"] += 1
             start_level(level)
         pygame.display.flip()
 
