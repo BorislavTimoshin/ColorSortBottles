@@ -96,7 +96,7 @@ class Rule:
             clock.tick(15)
 
 
-# Класс, отвечающий за рисование текста, кнопок, узоров игры
+# Класс, отвечающий за рисование текста, меню, узоров игры
 class Draw:
     @staticmethod
     def print_text(text, position, font_color, font_size):
