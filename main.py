@@ -12,7 +12,7 @@ screen = pygame.display.set_mode(size)
 background = pygame.image.load("Images/background.jpg")
 icon_surface = pygame.image.load("Images/icon.png")
 pygame.display.set_icon(icon_surface)
-pygame.display.set_caption("Color Sort Bottles")
+pygame.display.set_caption("Get Color")
 clock = pygame.time.Clock()
 color_names = list(colors_rgb.keys())
 first_pick = None
@@ -40,7 +40,163 @@ class Button:
                     key()
         else:
             pygame.draw.rect(screen, self.color, (x, y, self.width, self.height))
-        print_text(text, (x + 5, y + 10), (0, 102, 0), font_size)
+        drawing.print_text(text, (x + 5, y + 10), (0, 102, 0), font_size)
+
+
+# Класс, отвечающий за правила игры
+class Rule:
+    @staticmethod
+    def get_rule_text() -> str:
+        """ Метод, возвращаяющий текст правил игры """
+        with open("Other_files/rules.txt", "r", encoding="utf-8") as file:
+            rule_text = file.read()
+        return rule_text
+
+    @staticmethod
+    def print_rule_text(rule_text: str):
+        """ Метод, выводящий текст правил игры """
+        rule_font = pygame.font.SysFont(None, 40)
+        # Разбиваем текст на строки с учетом переносов
+        lines = []
+        sentences = [sentence.split() for sentence in rule_text.split("\n")]
+        for sentence in sentences:
+            current_line = ''
+            for word in sentence:
+                test_line = current_line + word + ' '
+                if rule_font.size(test_line)[0] < width_screen - 130:
+                    current_line = test_line
+                else:
+                    lines.append(current_line)
+                    current_line = word + ' '
+            lines.append(current_line)
+        # Отображаем текст на экране с учетом переносов
+        y = 280
+        for line in lines:
+            rule_surface = rule_font.render(line, True, rule_text_color)
+            screen.blit(rule_surface, (100, y))
+            y += rule_font.size(line)[1]
+        pygame.display.update()
+
+    def show_rule(self):
+        """ Метод, печатающий правила игры """
+        screen.blit(background, (0, 0))
+        back = Button(100, 45, btn_color)
+        drawing.print_text("ПРАВИЛА ИГРЫ", (240, 150), header_color, 90)
+        rule_text = self.get_rule_text()
+        self.print_rule_text(rule_text)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        sys.exit()
+            back.draw_button(430, 620, "Назад", key=start_screen)
+            pygame.display.flip()
+            clock.tick(15)
+
+
+# Класс, отвечающий за рисование текста, кнопок, узоров игры
+class Draw:
+    @staticmethod
+    def print_text(text, position, font_color, font_size):
+        font_type = pygame.font.Font(None, font_size)
+        text = font_type.render(text, True, font_color)
+        screen.blit(text, position)
+
+    @staticmethod
+    def show_levels():
+        """ Метод для вывода меню уровней """
+        screen.blit(background, (0, 0))
+        drawing.print_text("ВЫБЕРИТЕ УРОВЕНЬ ИГРЫ!", (100, 150), header_color, 80)
+        all_sprites_bottle.draw(screen)
+        level_1 = Button(175, 45, btn_color)
+        level_2 = Button(175, 45, btn_color)
+        level_3 = Button(175, 45, btn_color)
+        level_4 = Button(175, 45, btn_color)
+        level_5 = Button(175, 45, btn_color)
+        back = Button(100, 45, btn_color)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        sys.exit()
+            level_1.draw_button(402, 270, "УРОВЕНЬ 1", key=start_level, level=1)
+            level_2.draw_button(402, 340, "УРОВЕНЬ 2", key=start_level, level=2)
+            level_3.draw_button(402, 410, "УРОВЕНЬ 3", key=start_level, level=3)
+            level_4.draw_button(402, 480, "УРОВЕНЬ 4", key=start_level, level=4)
+            level_5.draw_button(402, 550, "УРОВЕНЬ 5", key=start_level, level=5)
+            back.draw_button(440, 620, "Назад", key=start_screen)
+            pygame.display.flip()
+            clock.tick(15)
+
+    @staticmethod
+    def show_main_menu():
+        """ Метож для вывода кнопок главного меню """
+        button_start = Button(205, 45, btn_color)
+        button_rule = Button(150, 45, btn_color)
+        button_quit = Button(120, 45, btn_color)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        sys.exit()
+            button_start.draw_button(385, 410, "НАЧАТЬ ИГРУ", key=drawing.show_levels)
+            button_rule.draw_button(412, 480, "ПРАВИЛА", key=rule.show_rule)
+            button_quit.draw_button(427, 550, "ВЫХОД", key=sys.exit)
+            pygame.display.flip()
+            clock.tick(15)
+
+    def draw_game(self, level):
+        """ Метод, рисующий колбочки, кнопку назад: игровое поле """
+        screen.blit(background, (0, 0))
+        back = Button(100, 45, btn_color)
+        back.draw_button(800, 660, "Назад", key=self.show_levels)
+        again = Button(110, 45, btn_color)
+        again.draw_button(670, 660, "Заново", key=start_level, level=level)
+        # Рисуем бутылки
+        for bottle in Bottle.bottles:
+            bottle.draw()
+
+    def create_particles(self, position, level):
+        """ Метод, создающий анимацию звездопада """
+        # количество создаваемых частиц
+        particle_count = 150
+        # возможные скорости
+        numbers = range(-5, 6)
+        for _ in range(particle_count):
+            Particle(position, random.choice(numbers), random.choice(numbers))
+        for i in range(80):
+            all_sprites_animation.update()
+            self.draw_game(level)
+            all_sprites_animation.draw(screen)
+            pygame.display.flip()
+            clock.tick(50)
+
+    def print_result(self, level):
+        """ Вывод информации о результатах игры: количество поражений, побед, рекорд по времени """
+        number_of_wins = progress[f"level_{level}"]["Побед"]
+        number_of_defeats = progress[f"level_{level}"]["Поражений"]
+        record_time = progress[f"level_{level}"]["record_time"]
+        if record_time is not None:
+            rec_minute = record_time.minute
+            rec_second = record_time.second
+            if 0 <= rec_second <= 9:
+                if 0 <= rec_minute <= 9:
+                    self.print_text(f"Рекордное время: 0{rec_minute}:0{rec_second}", (100, 700), header_color, 50)
+                else:
+                    self.print_text(f"Рекордное время: {rec_minute}:0{rec_second}", (100, 700), header_color, 50)
+            else:
+                if 0 <= rec_minute <= 9:
+                    self.print_text(f"Рекордное время: 0{rec_minute}:{rec_second}", (100, 700), header_color, 50)
+                else:
+                    self.print_text(f"Рекордное время: {rec_minute}:{rec_second}", (100, 700), header_color, 50)
+        self.print_text(f"Число побед: {number_of_wins}", (100, 600), header_color, 50)
+        self.print_text(f"Число поражений: {number_of_defeats}", (100, 650), header_color, 50)
 
 
 def load_image(name, color_key=None):
@@ -58,40 +214,6 @@ def load_image(name, color_key=None):
     else:
         image = image.convert_alpha()
     return image
-
-
-def print_text(text, position, font_color, font_size):
-    font_type = pygame.font.Font(None, font_size)
-    text = font_type.render(text, True, font_color)
-    screen.blit(text, position)
-
-
-def draw_game(level):
-    """ Функция, рисующая колбочки, кнопку назад: игровое поле """
-    screen.blit(background, (0, 0))
-    back = Button(100, 45, btn_color)
-    back.draw_button(800, 660, "Назад", key=show_levels)
-    again = Button(110, 45, btn_color)
-    again.draw_button(670, 660, "Заново", key=start_level, level=level)
-    # Рисуем бутылки
-    for bottle in Bottle.bottles:
-        bottle.draw()
-
-
-def create_particles(position, level):
-    """ Функция, создающая анимацию звездопада """
-    # количество создаваемых частиц
-    particle_count = 150
-    # возможные скорости
-    numbers = range(-5, 6)
-    for _ in range(particle_count):
-        Particle(position, random.choice(numbers), random.choice(numbers))
-    for i in range(80):
-        all_sprites_animation.update()
-        draw_game(level)
-        all_sprites_animation.draw(screen)
-        pygame.display.flip()
-        clock.tick(50)
 
 
 def lost(level) -> bool:
@@ -116,6 +238,21 @@ def win() -> bool:
         if len(set(i.liquids)) > 1:
             return False
     return True
+
+
+def record_time_processing(level):
+    current_time = datetime.now()
+    start_time = progress[f"level_{level}"]["start_time"]
+    all_seconds = current_time.minute * 60 - start_time.minute * 60 + current_time.second - start_time.second
+    game_minutes = all_seconds // 60
+    game_seconds = all_seconds % 60
+    game_time = datetime(year=2024, month=1, day=1, minute=game_minutes, second=game_seconds)
+    record_time = progress[f"level_{level}"]["record_time"]
+    if record_time is None:
+        progress[f"level_{level}"]["record_time"] = game_time
+    else:
+        if game_time < record_time:
+            progress[f"level_{level}"]["record_time"] = game_time
 
 
 def create_bottles(level):
@@ -146,43 +283,6 @@ def create_bottles(level):
         )
 
 
-def print_result(level):
-    """ Вывод информации о результатах игры: количество поражений, побед, рекорд по времени """
-    number_of_wins = progress[f"level_{level}"]["Побед"]
-    number_of_defeats = progress[f"level_{level}"]["Поражений"]
-    record_time = progress[f"level_{level}"]["record_time"]
-    if record_time is not None:
-        rec_minute = record_time.minute
-        rec_second = record_time.second
-        if 0 <= rec_second <= 9:
-            if 0 <= rec_minute <= 9:
-                print_text(f"Рекордное время: 0{rec_minute}:0{rec_second}", (100, 700), header_color, 50)
-            else:
-                print_text(f"Рекордное время: {rec_minute}:0{rec_second}", (100, 700), header_color, 50)
-        else:
-            if 0 <= rec_minute <= 9:
-                print_text(f"Рекордное время: 0{rec_minute}:{rec_second}", (100, 700), header_color, 50)
-            else:
-                print_text(f"Рекордное время: {rec_minute}:{rec_second}", (100, 700), header_color, 50)
-    print_text(f"Число побед: {number_of_wins}", (100, 600), header_color, 50)
-    print_text(f"Число поражений: {number_of_defeats}", (100, 650), header_color, 50)
-
-
-def record_time_processing(level):
-    current_time = datetime.now()
-    start_time = progress[f"level_{level}"]["start_time"]
-    all_seconds = current_time.minute * 60 - start_time.minute * 60 + current_time.second - start_time.second
-    game_minutes = all_seconds // 60
-    game_seconds = all_seconds % 60
-    game_time = datetime(year=2024, month=1, day=1, minute=game_minutes, second=game_seconds)
-    record_time = progress[f"level_{level}"]["record_time"]
-    if record_time is None:
-        progress[f"level_{level}"]["record_time"] = game_time
-    else:
-        if game_time < record_time:
-            progress[f"level_{level}"]["record_time"] = game_time
-
-
 def start_level(level):
     """ Начало выполнения уровня """
     global first_pick, second_pick
@@ -211,14 +311,14 @@ def start_level(level):
                         else:  # Иначе сохраняем выбранную в первый раз бутылку
                             jar.picked = True
                             first_pick = jar
-        draw_game(level)
-        print_result(level)
+        drawing.draw_game(level)
+        drawing.print_result(level)
         # Проверка на то, отсортированы жидкости или нет
         if win():
             progress[f"level_{level}"]["Побед"] += 1
             record_time_processing(level)
             pygame.display.flip()
-            create_particles(pygame.mouse.get_pos(), level)
+            drawing.create_particles(pygame.mouse.get_pos(), level)
             start_level(level)
         elif lost(level):
             pygame.display.flip()
@@ -227,109 +327,12 @@ def start_level(level):
         pygame.display.flip()
 
 
-def show_levels():
-    """ Функция для вывода меню уровней """
-    screen.blit(background, (0, 0))
-    print_text("ВЫБЕРИТЕ УРОВЕНЬ ИГРЫ!", (100, 150), header_color, 80)
-    all_sprites_bottle.draw(screen)
-    level_1 = Button(175, 45, btn_color)
-    level_2 = Button(175, 45, btn_color)
-    level_3 = Button(175, 45, btn_color)
-    level_4 = Button(175, 45, btn_color)
-    level_5 = Button(175, 45, btn_color)
-    back = Button(100, 45, btn_color)
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    sys.exit()
-        level_1.draw_button(402, 270, "УРОВЕНЬ 1", key=start_level, level=1)
-        level_2.draw_button(402, 340, "УРОВЕНЬ 2", key=start_level, level=2)
-        level_3.draw_button(402, 410, "УРОВЕНЬ 3", key=start_level, level=3)
-        level_4.draw_button(402, 480, "УРОВЕНЬ 4", key=start_level, level=4)
-        level_5.draw_button(402, 550, "УРОВЕНЬ 5", key=start_level, level=5)
-        back.draw_button(440, 620, "Назад", key=start_screen)
-        pygame.display.flip()
-        clock.tick(15)
-
-
-def get_rule_text() -> str:
-    """ Функция, возвращаяющая текст правил игры """
-    with open("Other_files/rules.txt", "r", encoding="utf-8") as file:
-        rule = file.read()
-    return rule
-
-
-def print_rule_text(rule: str):
-    """ Функция, выводящая текст правил игры """
-    rule_font = pygame.font.SysFont(None, 40)
-    # Разбиваем текст на строки с учетом переносов
-    lines = []
-    sentences = [sentence.split() for sentence in rule.split("\n")]
-    for sentence in sentences:
-        current_line = ''
-        for word in sentence:
-            test_line = current_line + word + ' '
-            if rule_font.size(test_line)[0] < width_screen - 130:
-                current_line = test_line
-            else:
-                lines.append(current_line)
-                current_line = word + ' '
-        lines.append(current_line)
-    # Отображаем текст на экране с учетом переносов
-    y = 280
-    for line in lines:
-        rule_surface = rule_font.render(line, True, rule_text_color)
-        screen.blit(rule_surface, (100, y))
-        y += rule_font.size(line)[1]
-    pygame.display.update()
-
-
-def show_rule():
-    """ Функция, печатающая правила игры """
-    screen.blit(background, (0, 0))
-    back = Button(100, 45, btn_color)
-    print_text("ПРАВИЛА ИГРЫ", (240, 150), header_color, 90)
-    rule = get_rule_text()
-    print_rule_text(rule)
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    sys.exit()
-        back.draw_button(430, 620, "Назад", key=start_screen)
-        pygame.display.flip()
-        clock.tick(15)
-
-
-def show_menu():
-    """ Функция для вывода кнопок главного меню """
-    button_start = Button(205, 45, btn_color)
-    button_rule = Button(150, 45, btn_color)
-    button_quit = Button(120, 45, btn_color)
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    sys.exit()
-        button_start.draw_button(385, 410, "НАЧАТЬ ИГРУ", key=show_levels)
-        button_rule.draw_button(412, 480, "ПРАВИЛА", key=show_rule)
-        button_quit.draw_button(427, 550, "ВЫХОД", key=sys.exit)
-        pygame.display.flip()
-        clock.tick(15)
-
-
 def start_screen():
+    """ Начала работы игры/программы """
     screen.blit(background, (0, 0))
-    print_text("Get Color", (290, 150), header_color, 130)
+    drawing.print_text("Get Color", (290, 150), header_color, 130)
     all_sprites_bottle.draw(screen)
-    show_menu()
+    drawing.show_main_menu()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -351,5 +354,7 @@ bottle_sprite2.rect.x = 530
 bottle_sprite2.rect.y = 320
 all_sprites_bottle.add(bottle_sprite1)
 all_sprites_bottle.add(bottle_sprite2)
+rule = Rule()
+drawing = Draw()
 
 start_screen()
