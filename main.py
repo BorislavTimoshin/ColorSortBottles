@@ -147,6 +147,7 @@ def create_bottles(level):
 
 
 def print_result(level):
+    """ Вывод информации о результатах игры: количество поражений, побед, рекорд по времени """
     number_of_wins = progress[f"level_{level}"]["Побед"]
     number_of_defeats = progress[f"level_{level}"]["Поражений"]
     record_time = progress[f"level_{level}"]["record_time"]
@@ -165,6 +166,21 @@ def print_result(level):
                 print_text(f"Рекордное время: {rec_minute}:{rec_second}", (100, 700), header_color, 50)
     print_text(f"Число побед: {number_of_wins}", (100, 600), header_color, 50)
     print_text(f"Число поражений: {number_of_defeats}", (100, 650), header_color, 50)
+
+
+def record_time_processing(level):
+    current_time = datetime.now()
+    start_time = progress[f"level_{level}"]["start_time"]
+    all_seconds = current_time.minute * 60 - start_time.minute * 60 + current_time.second - start_time.second
+    game_minutes = all_seconds // 60
+    game_seconds = all_seconds % 60
+    game_time = datetime(year=2024, month=1, day=1, minute=game_minutes, second=game_seconds)
+    record_time = progress[f"level_{level}"]["record_time"]
+    if record_time is None:
+        progress[f"level_{level}"]["record_time"] = game_time
+    else:
+        if game_time < record_time:
+            progress[f"level_{level}"]["record_time"] = game_time
 
 
 def start_level(level):
@@ -200,19 +216,7 @@ def start_level(level):
         # Проверка на то, отсортированы жидкости или нет
         if win():
             progress[f"level_{level}"]["Побед"] += 1
-            # Обработка времени
-            current_time = datetime.now()
-            start_time = progress[f"level_{level}"]["start_time"]
-            all_seconds = current_time.minute * 60 - start_time.minute * 60 + current_time.second - start_time.second
-            game_minutes = all_seconds // 60
-            game_seconds = all_seconds % 60
-            game_time = datetime(year=2024, month=1, day=1, minute=game_minutes, second=game_seconds)
-            record_time = progress[f"level_{level}"]["record_time"]
-            if record_time is None:
-                progress[f"level_{level}"]["record_time"] = game_time
-            else:
-                if game_time < record_time:
-                    progress[f"level_{level}"]["record_time"] = game_time
+            record_time_processing(level)
             pygame.display.flip()
             create_particles(pygame.mouse.get_pos(), level)
             start_level(level)
