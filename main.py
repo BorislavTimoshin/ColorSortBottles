@@ -134,7 +134,7 @@ class Draw:
 
     @staticmethod
     def show_main_menu():
-        """ Метож для вывода кнопок главного меню """
+        """ Метод для вывода кнопок главного меню """
         button_start = Button(205, 45, btn_color)
         button_rule = Button(150, 45, btn_color)
         button_quit = Button(120, 45, btn_color)
